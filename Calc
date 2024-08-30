@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vital Signs Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; color: #333; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
+        form { display: grid; gap: 15px; }
+        label { font-weight: bold; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 100%; }
+        button { padding: 10px; border: none; border-radius: 5px; background-color: #007BFF; color: white; font-size: 16px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 20px; }
+        .result p { margin: 5px 0; }
+        .normal { color: green; }
+        .high { color: orange; }
+        .low { color: red; }
+        .critically-low { color: darkred; font-weight: bold; }
+        .abnormal { color: red; }
+        .high-risk { color: red; font-weight: bold; animation: blink 1s step-start infinite; }
+        @keyframes blink {
+            0% { visibility: hidden; }
+            50% { visibility: visible; }
+            100% { visibility: hidden; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vital Signs Calculator</h1>
+        <form id="vitalSignsForm">
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required>
+
+            <label for="heartRate">Heart Rate (bpm):</label>
+            <input type="number" id="heartRate" name="heartRate" required>
+
+            <label for="respiratoryRate">Respiratory Rate (bpm):</label>
+            <input type="number" id="respiratoryRate" name="respiratoryRate" required>
+
+            <label for="o2">O2 Saturation (%):</label>
+            <input type="number" id="o2" name="o2" required>
+
+            <label for="systolicBP">Systolic BP (mmHg):</label>
+            <input type="number" id="systolicBP" name="systolicBP" required>
+
+            <label for="diastolicBP">Diastolic BP (mmHg):</label>
+            <input type="number" id="diastolicBP" name="diastolicBP" required>
+
+            <label for="temperature">Temperature (°F):</label>
+            <input type="number" id="temperature" name="temperature" step="0.1" required>
+
+            <label for="bgl">Blood Glucose Level (mg/dL):</label>
+            <input type="number" id="bgl" name="bgl" required>
+
+            <button type="button" onclick="calculateVitalSigns()">Calculate</button>
+        </form>
+
+        <div id="results" class="result"></div>
+    </div>
+
+    <script>
+        function calculateVitalSigns() {
+            // Get values from form
+            const age = parseFloat(document.getElementById('age').value);
+            const heartRate = parseFloat(document.getElementById('heartRate').value);
+            const respiratoryRate = parseFloat(document.getElementById('respiratoryRate').value);
+            const o2 = parseFloat(document.getElementById('o2').value);
+            const systolicBP = parseFloat(document.getElementById('systolicBP').value);
+            const diastolicBP = parseFloat(document.getElementById('diastolicBP').value);
+            const temperatureF = parseFloat(document.getElementById('temperature').value);
+            const bgl = parseFloat(document.getElementById('bgl').value);
+
+            // Check if any field is empty
+            if (isNaN(age) || isNaN(heartRate) || isNaN(respiratoryRate) || isNaN(o2) || isNaN(systolicBP) || isNaN(diastolicBP) || isNaN(temperatureF) || isNaN(bgl)) {
+                document.getElementById('results').innerHTML = '';
+                return;
+            }
+
+            // Convert Fahrenheit to Celsius for comparison
+            const temperatureC = (temperatureF - 32) * 5 / 9;
+
+            // Define ranges (example values)
+            let heartRateStatus, bpStatus, rrStatus, o2Status, temperatureStatus, bglStatus, sepsisRisk;
+
+            // Heart rate status
+            if (age < 1) {
+                if (heartRate < 80) {
+                    heartRateStatus = 'critically-low';
+                } else if (heartRate < 100) {
+                    heartRateStatus = 'low';
+                } else if (heartRate > 160) {
+                    heartRateStatus = 'high';
+                } else {
+                    heartRateStatus = 'normal';
+                }
+            } else if (age < 10) {
+                if (heartRate < 60) {
+                    heartRateStatus = 'critically-low';
+                } else if (heartRate < 70) {
+                    heartRateStatus = 'low';
+                } else if (heartRate > 120) {
+                    heartRateStatus = 'high';
+                } else {
+                    heartRateStatus = 'normal';
+                }
+            } else {
+                if (heartRate < 50) {
+                    heartRateStatus = 'critically-low';
+                } else if (heartRate < 60) {
+                    heartRateStatus = 'low';
+                } else if (heartRate > 100) {
+                    heartRateStatus = 'high';
+                } else {
+                    heartRateStatus = 'normal';
+                }
+            }
+
+            // Blood pressure status
+            if (systolicBP < 90 || diastolicBP < 60) {
+                bpStatus = 'low';
+            } else if (systolicBP > 140 || diastolicBP > 90) {
+                bpStatus = 'high';
+            } else {
+                bpStatus = 'normal';
+            }
+
+            // Respiratory rate status
+            if (age < 1) {
+                rrStatus = (respiratoryRate < 30 || respiratoryRate > 60) ? 'abnormal' : 'normal';
+            } else if (age < 10) {
+                rrStatus = (respiratoryRate < 20 || respiratoryRate > 30) ? 'abnormal' : 'normal';
+            } else {
+                rrStatus = (respiratoryRate < 12 || respiratoryRate > 20) ? 'abnormal' : 'normal';
+            }
+
+            // O2 saturation status
+            o2Status = (o2 < 95) ? 'abnormal' : 'normal';
+
+            // Temperature status
+            temperatureStatus = (temperatureF < 97 || temperatureF > 99) ? 'abnormal' : 'normal';
+
+            // Blood Glucose Level status
+            bglStatus = (bgl < 70 || bgl > 180) ? 'abnormal' : 'normal';
+
+            // Sepsis risk
+            sepsisRisk = (heartRate > 90 && (systolicBP < 90 || diastolicBP < 60) && temperatureC > 38) ? 'high-risk' : 'low-risk';
+
+            // Display results
+            let resultsHTML = `
+                <p class="${heartRateStatus}">Heart Rate Status: ${heartRateStatus.replace('-', ' ').toUpperCase()}</p>
+                <p class="${bpStatus}">Blood Pressure Status: ${bpStatus.charAt(0).toUpperCase() + bpStatus.slice(1)}</p>
+                <p class="${rrStatus}">Respiratory Rate Status: ${rrStatus.charAt(0).toUpperCase() + rrStatus.slice(1)}</p>
+                <p class="${o2Status}">O2 Saturation Status: ${o2Status.charAt(0).toUpperCase() + o2Status.slice(1)}</p>
+                <p class="${temperatureStatus}">Temperature Status: ${temperatureF} °F</p>
+                <p class="${bglStatus}">Blood Glucose Level Status: ${bgl} mg/dL</p>
+            `;
+            
+            if (sepsisRisk === 'high-risk') {
+                resultsHTML += `
+                    <p class="${sepsisRisk}">Sepsis Risk: ${sepsisRisk.replace('-', ' ').toUpperCase()}</p>
+                    <p class="high-risk">Call for Medics</p>
+                `;
+            } else {
+                resultsHTML += `<p class="${sepsisRisk}">Sepsis Risk: ${sepsisRisk.replace('-', ' ').toUpperCase()}</p>`;
+            }
+            
+            document.getElementById('results').innerHTML = resultsHTML;
